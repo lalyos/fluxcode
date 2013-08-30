@@ -1,0 +1,80 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
+<script type="text/coffeescript">
+	$.get(location.pathname).done (data) ->
+		c = data.split('##\n')[1]
+		eval CoffeeScript.compile(c)
+		env.store 'fluxcode.coffee', c
+##
+
+window.env = (name) -> env.cb[name] ?= $.Callbacks()
+$.extend env,
+	cb: {}
+	docs: {}
+	
+	space: -> location.hash[1..] or "home"
+
+	reload: -> location.reload()
+
+	switch: (space) -> 
+		window.location.hash = space
+		env.reload()
+
+	retrieve: (name) ->
+		env.docs[name] || ""
+
+	store: (name, value) ->
+		env.docs[name] = value
+		env('docs.change').fire(name)
+	
+	delete: (name) ->
+		delete(env.docs[name])
+		env('docs.change').fire(name)
+
+	load: (url) ->
+		loaders[url.split('.').slice(-1)[0]](url)
+	
+	init: ->
+		window.document.title = "FluxCode"
+		window.onhashchange = env.reload
+		
+		if localStorage[env.space()]
+			env.docs = JSON.parse(localStorage[env.space()])
+		else
+			env.docs = {}
+		env('docs.change').add ->
+			localStorage[env.space()] = JSON.stringify(env.docs)
+		
+		if env.docs['init.js']
+			env.load('init.js')
+		if env.docs['init.coffee']
+			env.load('init.coffee')
+
+loaders =
+	css: (url) ->
+		d = $.Deferred()
+		link = document.createElement("link")
+		link.href = url
+		link.type = "text/css"
+		link.rel = "stylesheet"
+		link.onload = -> d.resolve()
+		document.head.appendChild(link)
+		d
+
+	js: (url) ->
+		if env.docs[url]
+			eval(env.docs[url])
+			$.Deferred().resolve()
+		else
+			$.getScript(url)
+
+	coffee: (url) ->
+		if env.docs[url]
+			eval(CoffeeScript.compile(env.docs[url]))
+			$.Deferred().resolve()
+		else
+			loaders.js("http://compiler.cloudpeninsula.com/?url="+url)
+
+env.init()
+
+#</script>
