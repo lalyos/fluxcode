@@ -1,0 +1,80 @@
+//###
+!function() { 
+var self = "/fluxcode.bootstrap";
+var d = document.body.appendChild(document.createElement("script")); d.onload = function() { 
+	$.getScript("http://coffeescript.org/extras/coffee-script.js").done(function() {
+		$.get(self).done(function(data) {
+			var c = data.split('###\n')[2]; eval(CoffeeScript.compile(c)); env.store('fluxcode.coffee', c)
+		})
+	})
+}
+d.src = "//code.jquery.com/jquery-2.0.3.min.js";
+}()
+/*###
+
+loaders =
+	css: (url) ->
+		d = $.Deferred()
+		link = document.createElement("link")
+		link.href = url
+		link.type = "text/css"
+		link.rel = "stylesheet"
+		link.onload = -> d.resolve()
+		document.head.appendChild(link)
+		d
+
+	js: (url) ->
+		if env.documents[url]
+			eval(env.documents[url])
+			$.Deferred().resolve()
+		else
+			$.getScript(url)
+
+	coffee: (url) ->
+		if env.documents[url]
+			eval(CoffeeScript.compile(env.documents[url]))
+			$.Deferred().resolve()
+		else
+			loaders.js("http://compiler.cloudpeninsula.com/?url="+url)
+
+window.env = (name) -> env.callbacks[name] ?= $.Callbacks()
+$.extend env,
+	callbacks: {}
+	documents: {}
+	
+	space: -> window.location.hash[1..] or "default"
+
+	reload: window.location.reload
+
+	switch: (space) -> 
+		window.location.hash = space
+		env.reload()
+
+	store: (name, value) ->
+		env.documents[name] = value
+		localStorage[env.space()] = JSON.stringify(env.documents)
+	
+	retrieve: (name) ->
+		env.documents[name] || ""
+	
+	delete: (name) ->
+		delete(env.documents[name])
+		localStorage[env.space()] = JSON.stringify(env.documents)
+
+	load: (url) ->
+		loaders[url.split('.').slice(-1)[0]](url)
+	
+	init: ->
+		window.onhashchange = -> env.reload()
+		if localStorage[env.space()] == undefined
+			env.documents = {}
+		else
+			env.documents = JSON.parse(localStorage[env.space()])
+		if env.documents['init.js']
+			env.load('init.js')
+		if env.documents['init.coffee']
+			env.load('init.coffee')
+	
+env.init()
+
+#*/
