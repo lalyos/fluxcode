@@ -1,6 +1,6 @@
 $.when(
-	env.load('//cdn.jsdelivr.net/codemirror/2.37/codemirror.js'),
-	env.load('//cdn.jsdelivr.net/codemirror/2.37/codemirror.css'),
+	env.load('//cdn.jsdelivr.net/codemirror/2.36/codemirror.js'),
+	env.load('//cdn.jsdelivr.net/codemirror/2.36/codemirror.css'),
 ).done ->
 	window.editor = {}
 	editor.widget = CodeMirror(document.body)
@@ -16,7 +16,7 @@ $.when(
 		editor.widget.setOption 'onChange', ->
 			env.put name, editor.widget.getValue()
 	$.when(
-		env.load('//cdn.jsdelivr.net/codemirror/2.37/mode/coffeescript/coffeescript.js'),
-		env.load('//cdn.jsdelivr.net/codemirror/2.37/mode/javascript/javascript.js')
+		env.load('//cdn.jsdelivr.net/codemirror/2.36/mode/coffeescript/coffeescript.js'),
+		env.load('//cdn.jsdelivr.net/codemirror/2.36/mode/javascript/javascript.js')
 	).done ->
 		env("editor.ready").fire()	
