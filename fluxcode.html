@@ -7,70 +7,92 @@
 		env.store 'fluxcode.coffee', c
 ##
 
-window.env = (name) -> env.cb[name] ?= $.Callbacks()
+window.env = (name) -> env._cb[name] ?= $.Callbacks()
 $.extend env,
-	cb: {}
-	docs: {}
+	_cb: {}
+	_docs: {}
+
+	space: (space) -> 
+		if space
+			window.location.hash = space
+			location.reload()
+		else
+			location.hash[1..] or "home"
 	
-	space: -> location.hash[1..] or "home"
+	spaces: -> 
+		key.substr(6) for key of localStorage when key.indexOf("space.") == 0
 
-	reload: -> location.reload()
-
-	switch: (space) -> 
-		window.location.hash = space
-		env.reload()
+	clear: (space) ->
+		space ?= env.space()
+		if confirm("Are you sure you want to delete "+space+"?")
+			delete(localStorage["space."+space])
+			location.reload()
 
 	retrieve: (name) ->
-		env.docs[name] || ""
+		env.get(name)
+	
+	get: (name) ->
+		env._docs[name] || ""
 
 	store: (name, value) ->
-		env.docs[name] = value
+		env.put(name, value)
+	
+	put: (name, value) ->
+		env._docs[name] = value
 		env('docs.change').fire(name)
 	
+	list: ->
+		[name for name of env._docs]
+	
 	delete: (name) ->
-		delete(env.docs[name])
+		delete(env._docs[name])
 		env('docs.change').fire(name)
 
 	load: (url) ->
 		loaders[url.split('.').slice(-1)[0]](url)
 	
+	install: (name, url) ->
+		if not env._docs[name]
+			$.get(url).done (data) ->
+				env.store name, data
+				env.load name
+		else
+			env.load name
+	
 	init: ->
 		window.document.title = "FluxCode"
-		window.onhashchange = env.reload
+		window.onhashchange = -> location.reload()
 		
-		if localStorage[env.space()]
-			env.docs = JSON.parse(localStorage[env.space()])
+		if localStorage["space."+env.space()]
+			env._docs = JSON.parse(localStorage["space."+env.space()])
 		else
-			env.docs = {}
+			env._docs = {}
 		env('docs.change').add ->
-			localStorage[env.space()] = JSON.stringify(env.docs)
+			localStorage["space."+env.space()] = JSON.stringify(env._docs)
 		
-		if env.docs['init.js']
+		if env._docs['init.js']
 			env.load('init.js')
-		if env.docs['init.coffee']
+		if env._docs['init.coffee']
 			env.load('init.coffee')
 
 loaders =
 	css: (url) ->
 		d = $.Deferred()
-		link = document.createElement("link")
-		link.href = url
-		link.type = "text/css"
-		link.rel = "stylesheet"
-		link.onload = -> d.resolve()
-		document.head.appendChild(link)
+		$("<link />", {href: url, type: "text/css", rel: "stylesheet"})
+		.on("load", -> d.resolve())
+		.appendTo(document.head)
 		d
 
 	js: (url) ->
-		if env.docs[url]
-			eval(env.docs[url])
+		if env._docs[url]
+			eval(env._docs[url])
 			$.Deferred().resolve()
 		else
 			$.getScript(url)
 
 	coffee: (url) ->
-		if env.docs[url]
-			eval(CoffeeScript.compile(env.docs[url]))
+		if env._docs[url]
+			eval(CoffeeScript.compile(env._docs[url]))
 			$.Deferred().resolve()
 		else
 			loaders.js("http://compiler.cloudpeninsula.com/?url="+url)
