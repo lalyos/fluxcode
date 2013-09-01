@@ -60,7 +60,7 @@ $.extend env,
 			env.load name
 	
 	init: ->
-		window.document.title = "FluxCode"
+		window.document.title = "Fluxcode"
 		window.onhashchange = -> location.reload()
 		
 		if localStorage["space."+env.space()]
@@ -74,6 +74,8 @@ $.extend env,
 			env.load('init.js')
 		if env._docs['init.coffee']
 			env.load('init.coffee')
+		
+		console.log "Fluxcode ready."
 
 loaders =
 	css: (url) ->
