@@ -42,7 +42,7 @@ $.extend env,
 		env('docs.change').fire(name)
 	
 	list: ->
-		[name for name of env._docs]
+		name for name of env._docs
 	
 	delete: (name) ->
 		delete(env._docs[name])
