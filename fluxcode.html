@@ -42,7 +42,7 @@ $.extend env,
 		env('docs.change').fire(name)
 	
 	list: ->
-		name for name of env._docs
+		name for name of env._docs when name[0] != '.'
 	
 	delete: (name) ->
 		delete(env._docs[name])
@@ -97,7 +97,11 @@ loaders =
 			eval(CoffeeScript.compile(env._docs[url]))
 			$.Deferred().resolve()
 		else
-			loaders.js("http://compiler.cloudpeninsula.com/?url="+url)
+			d = $.Deferred()
+			$.get(url).done (data) ->
+				eval(CoffeeScript.compile(data))
+				d.resolve()
+			d
 
 env.init()
 
