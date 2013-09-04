@@ -7,6 +7,8 @@ $.when(
 	editor.widget.setSize null, "95%"
 	editor.open = (name) ->
 		editor.widget.setOption 'onChange', null
+		editor.widget.setOption 'indentWithTabs', true
+		editor.widget.setOption 'tabSize', 2
 		editor.widget.setOption 'mode', {
 			js: "javascript"
 			coffee: "coffeescript"
