@@ -1,0 +1,7 @@
+version: '3.1'
+
+services:
+  fluxcode:
+    image: lalyos/fluxcode
+    ports:
+      - 8080:80
